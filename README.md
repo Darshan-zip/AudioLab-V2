@@ -18,6 +18,18 @@ A comprehensive web application for audio processing, music analysis, and conten
 
 AudioLab is a full-stack application designed to simplify complex audio processing tasks. It features a modern, responsive frontend built with React and TypeScript, paired with backend services powered by Express.js, Python, and FastAPI. The platform provides real-time audio processing, ML-based music analysis, and interactive tools for professional audio work.
 
+### Home / Dashboard
+![Home Page](./UI_Screenshots/home.jpeg)
+
+### Workspace
+![Workspace](./UI_Screenshots/workspace.jpeg)
+
+### Lyrics Generator
+![Lyrics Generator](./UI_Screenshots/generator.jpeg)
+
+### Audio Equalizer
+![Audio Equalizer](./UI_Screenshots/equalizer.jpeg)
+
 ## ✨ Features
 
 ### Core Audio Tools
