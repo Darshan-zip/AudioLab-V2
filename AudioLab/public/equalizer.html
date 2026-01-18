@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Audio Equalizer</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #121212;
+            color: white;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 500px;
+            margin: auto;
+            padding: 20px;
+            background: #222;
+            border-radius: 10px;
+            box-shadow: 0px 0px 10px rgba(255, 255, 255, 0.2);
+        }
+
+        input, button {
+            margin: 10px;
+            padding: 10px;
+            border-radius: 5px;
+            border: none;
+        }
+
+        button {
+            background: #ff5722;
+            color: white;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #e64a19;
+        }
+
+        .slider {
+            width: 100%;
+            margin: 10px 0;
+        }
+
+        canvas {
+            width: 100%;
+            height: 200px;
+            background: black;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>🎵 Audio Equalizer 🎵</h2>
+        <input type="file" id="audioFile" accept="audio/*"><br>
+        <label>Start Time (seconds):</label>
+        <input type="number" id="startTime" min="0" value="0"><br>
+        <label>End Time (seconds):</label>
+        <input type="number" id="endTime" min="1" value="5"><br>
+        <label>Bass:</label>
+        <input type="range" id="bass" class="slider" min="-40" max="40" value="0"><br>
+        <label>Treble:</label>
+        <input type="range" id="treble" class="slider" min="-40" max="40" value="0"><br>
+        <label>Stereo Balance:</label>
+        <input type="range" id="stereo" class="slider" min="-1" max="1" step="0.1" value="0"><br>
+        <button onclick="playAudio()">Play Modified Audio</button>
+        <canvas id="visualizer"></canvas>
+    </div>
+
+    <script>
+        let audioContext, source, audioBuffer, analyserL, analyserR, splitter;
+        const canvas = document.getElementById('visualizer');
+        const ctx = canvas.getContext('2d');
+
+        document.getElementById('audioFile').addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+
+            reader.onload = function(e) {
+                const arrayBuffer = e.target.result;
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                document.body.addEventListener("click", () => {
+                    if (audioContext.state === "suspended") {
+                        audioContext.resume();
+                    }
+                });
+
+                audioContext.decodeAudioData(arrayBuffer, function(buffer) {
+                    audioBuffer = buffer;
+                    console.log("Audio file loaded successfully!");
+                });
+            };
+            reader.readAsArrayBuffer(file);
+        });
+
+        function playAudio() {
+            if (!audioBuffer) {
+                alert("Please load an audio file first!");
+                return;
+            }
+
+            const startTime = parseFloat(document.getElementById('startTime').value);
+            const endTime = parseFloat(document.getElementById('endTime').value);
+            const bassValue = parseFloat(document.getElementById('bass').value);
+            const trebleValue = parseFloat(document.getElementById('treble').value);
+            const stereoValue = parseFloat(document.getElementById('stereo').value);
+
+            if (source) {
+                source.stop();
+            }
+
+            source = audioContext.createBufferSource();
+            source.buffer = audioBuffer;
+
+            const bassFilter = audioContext.createBiquadFilter();
+            bassFilter.type = "lowshelf";
+            bassFilter.frequency.value = 200;
+            bassFilter.gain.value = bassValue;
+
+            const trebleFilter = audioContext.createBiquadFilter();
+            trebleFilter.type = "highshelf";
+            trebleFilter.frequency.value = 4000;
+            trebleFilter.gain.value = trebleValue;
+
+            const stereoPanner = audioContext.createStereoPanner();
+            stereoPanner.pan.value = stereoValue;
+
+            splitter = audioContext.createChannelSplitter(2);
+            analyserL = audioContext.createAnalyser();
+            analyserR = audioContext.createAnalyser();
+            analyserL.fftSize = analyserR.fftSize = 512;
+
+            source.connect(bassFilter);
+            bassFilter.connect(trebleFilter);
+            trebleFilter.connect(stereoPanner);
+            stereoPanner.connect(splitter);
+            splitter.connect(analyserL, 0);
+            splitter.connect(analyserR, 1);
+            stereoPanner.connect(audioContext.destination);
+
+            visualize();
+            source.start(0, startTime, endTime - startTime);
+        }
+
+        function visualize() {
+            canvas.width = canvas.offsetWidth;
+            canvas.height = 200;
+            const bufferLength = analyserL.frequencyBinCount;
+            const dataArrayL = new Uint8Array(bufferLength);
+            const dataArrayR = new Uint8Array(bufferLength);
+
+            function draw() {
+                requestAnimationFrame(draw);
+                analyserL.getByteFrequencyData(dataArrayL);
+                analyserR.getByteFrequencyData(dataArrayR);
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                const barWidth = canvas.width / bufferLength;
+                let x = 0;
+                for (let i = 0; i < bufferLength; i++) {
+                    let barHeightL = (dataArrayL[i] / 255) * canvas.height / 2;
+                    let barHeightR = (dataArrayR[i] / 255) * canvas.height / 2;
+                    ctx.fillStyle = `rgb(${barHeightL + 100}, 255, 100)`;
+                    ctx.fillRect(x, canvas.height / 2 - barHeightL, barWidth, barHeightL);
+                    ctx.fillStyle = `rgb(100, 255, ${barHeightR + 100})`;
+                    ctx.fillRect(x, canvas.height / 2, barWidth, barHeightR);
+                    x += barWidth + 1;
+                }
+            }
+            draw();
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vocal Remover</title>
+    <link rel="stylesheet" href="LRstyles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Upload a Song to Remove Vocals</h1>
+        <input type="file" id="fileInput" accept="audio/*">
+        <button id="uploadBtn">Upload</button>
+
+        <div id="result" class="hidden">
+            <h2>Download & Play Instrumental:</h2>
+            <a id="downloadLink" href="#" download>Click Here</a>
+            
+            <!-- Audio Player -->
+            <audio id="audioPlayer" controls class="hidden">
+                Your browser does not support the audio element.
+            </audio>
+        </div>
+    </div>
+    <script src="LRscript.js"></script>
+</body>
+</html>
