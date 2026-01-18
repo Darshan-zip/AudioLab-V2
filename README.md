@@ -1,5 +1,4 @@
-# AudioLab - Intelligent Audio Processing Suite
-
+# AudioLab - AI Music Production Studio
 A comprehensive web application for audio processing, music analysis, and content generation. AudioLab combines cutting-edge machine learning models with an intuitive React-based interface to provide musicians, content creators, and audio engineers with powerful tools for audio manipulation and creative workflows.
 
 ## 📋 Table of Contents
